@@ -3,8 +3,8 @@
 
 // init project
 var express = require("express");
-const bodyParser = require("body-parser");
 var app = express();
+const bodyParser = require("body-parser");
 console.log("hello there");
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
@@ -28,42 +28,40 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // your first API endpoint...
-app.get("/api/hello", function (req, res) {
-  res.json({ greeting: "hello API" });
-});
 
 app.get("/api", function (req, res) {
-  res.json({ unix: Date.now(), utc: new Date().toString()});
+  res.json({ unix: Date.now(), utc: new Date() });
 });
 
-app.route("/api/:year?-:month?-:day?")
-.get((req, res, next) => {
-  const {year,month,day} = req.params;
-  if (year,month,day) {
-  res.json({unix:Date.now(), utc:new Date().toString()})
-} else if (!year,!month,!day) {
-  res.json({"error":"Invalid Date"})
-}
+app.route("/api/:date?").get((req, res) => {
+  let date = req.params.date;
+  let unixDate;
+  let dateObj;
+  let utcDate;
+  //Using regex.text, check since stars if "date" has digits until the end.
+  let isUnix = /^\d+$/.test(date);
+  // if it is a number, parseint (converte or pass it as a number type)
+  if (isUnix) {
+    unixDate = parseInt(date);
+    dateObj = new Date(unixDate);
+  } else if (!isUnix) {
+    dateObj = new Date(date);
+    unixDate = dateObj.getTime();
+  };
+ if (dateObj.toString() === "Invalid Date") {
+    res.json({error: "Invalid Date"});
+    return;
+  }
+  utcDate = dateObj.toUTCString();
+  res.json({ unix: unixDate, utc: utcDate });
 });
 
-app.route("/api/1451001600000").get((req, res) => {
+/*app.route("/api/1451001600000").get((req, res) => {
   const vNumber = 1451001600000;
   res.json({ unix: vNumber, utc: new Date().toString() });
-});
+});*/
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log("Your app is listening on port " + listener.address().port);
 });
-
-/*
-const date = parseInt(req.params.date);
-if (date) {
-  const response = { unix: date, utc: new Date().toString() };
-  res.json(response);
-} else if (Number) {
-  const notResponse = { unix: Date.now(), utc: new Date().toString() };
-  res.json(notResponse);
-} else if (date === String) {
-  console.log("The response is an string, error");
-};*/
